@@ -1,14 +1,23 @@
 import type { Tool } from "ai";
 
-// TODO: implement
 export class ToolRegistry {
-  constructor(_tools: Record<string, Tool>) {}
+  private tools: Record<string, Tool>;
 
-  getSubset(_names: string[]): Record<string, Tool> {
-    return {};
+  constructor(tools: Record<string, Tool>) {
+    this.tools = tools;
+  }
+
+  getSubset(names: string[]): Record<string, Tool> {
+    const unknown = names.filter((n) => !(n in this.tools));
+    if (unknown.length > 0) {
+      throw new Error(`Unknown tools: ${unknown.join(", ")}`);
+    }
+    return Object.fromEntries(
+      names.map((name) => [name, this.tools[name] as Tool]),
+    );
   }
 
   list(): string[] {
-    return [];
+    return Object.keys(this.tools);
   }
 }
