@@ -245,6 +245,7 @@ export const agentMachine = setup({
       },
     },
     reflecting: {
+      meta: { checkpoint: true },
       invoke: {
         src: "reflector",
         input: ({ context }) => ({
