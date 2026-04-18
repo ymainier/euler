@@ -67,6 +67,9 @@ describe("runAgent", () => {
         decision: "done" as const,
         answer: "42",
         reasoning: "because",
+        feedback: "",
+        skippedTasks: [],
+        partialAnswer: "",
         confidence: { score: 0.9, reasoning: "strong" },
       },
       usage: zeroUsage,
@@ -112,7 +115,11 @@ describe("runAgent", () => {
     vi.mocked(reflect).mockResolvedValue({
       output: {
         decision: "escalate" as const,
+        answer: "",
         reasoning: "too hard",
+        feedback: "",
+        skippedTasks: [],
+        partialAnswer: "",
         confidence: { score: 0.1, reasoning: "very low" },
       },
       usage: zeroUsage,

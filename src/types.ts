@@ -25,36 +25,26 @@ export const TaskPlanSchema = z.object({
       taskId: z.string(),
       description: z.string(),
       tools: z.array(z.string()),
-      dependsOn: z.array(z.string()).default([]),
+      dependsOn: z.array(z.string()),
     }),
   ),
   canParallelize: z.boolean(),
-  maxConcurrency: z.number().int().min(1).max(10).default(4),
+  maxConcurrency: z.number().int().min(1).max(10),
 });
 export type TaskPlan = z.infer<typeof TaskPlanSchema>;
 export type PlannedTask = TaskPlan["tasks"][number];
 
-export const ReflectionOutputSchema = z.discriminatedUnion("decision", [
-  z.object({
-    decision: z.literal("done"),
-    answer: z.string(),
-    reasoning: z.string(),
-    confidence: ConfidenceSchema,
-  }),
-  z.object({
-    decision: z.literal("replan"),
-    reasoning: z.string(),
-    feedback: z.string(),
-    skippedTasks: z.array(z.string()),
-    confidence: ConfidenceSchema,
-  }),
-  z.object({
-    decision: z.literal("escalate"),
-    reasoning: z.string(),
-    partialAnswer: z.string().optional(),
-    confidence: ConfidenceSchema,
-  }),
-]);
+// Flat schema required for OpenAI structured output (no discriminatedUnion / oneOf).
+// Fields not applicable for a given decision should be empty string / empty array.
+export const ReflectionOutputSchema = z.object({
+  decision: z.enum(["done", "replan", "escalate"]),
+  answer: z.string(),
+  reasoning: z.string(),
+  feedback: z.string(),
+  skippedTasks: z.array(z.string()),
+  partialAnswer: z.string(),
+  confidence: ConfidenceSchema,
+});
 export type ReflectionOutput = z.infer<typeof ReflectionOutputSchema>;
 
 export type TaskOutput = {

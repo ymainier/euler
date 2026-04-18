@@ -1,4 +1,4 @@
-import { assert, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { runAgent, resumeAgent, CheckpointStore } from "./index.ts";
 import {
   TaskPlanSchema,
@@ -44,64 +44,72 @@ describe("Zod schemas", () => {
         { taskId: "t1", description: "do thing", tools: [], dependsOn: [] },
       ],
       canParallelize: false,
+      maxConcurrency: 1,
     });
     expect(result.success).toBe(true);
   });
 
-  it("TaskPlanSchema applies default maxConcurrency of 4", () => {
+  it("TaskPlanSchema requires maxConcurrency", () => {
     const result = TaskPlanSchema.safeParse({
       reasoning: "r",
       tasks: [],
       canParallelize: true,
     });
-    expect(result.success).toBe(true);
-    assert(result.success);
-    expect(result.data.maxConcurrency).toBe(4);
+    expect(result.success).toBe(false);
   });
 
-  it("TaskPlanSchema applies default dependsOn of []", () => {
+  it("TaskPlanSchema requires dependsOn on each task", () => {
     const result = TaskPlanSchema.safeParse({
       reasoning: "r",
       tasks: [{ taskId: "t1", description: "d", tools: [] }],
       canParallelize: false,
+      maxConcurrency: 1,
     });
-    expect(result.success).toBe(true);
-    assert(result.success);
-    expect(result.data.tasks[0]?.dependsOn).toEqual([]);
+    expect(result.success).toBe(false);
   });
+
+  const baseReflection = {
+    answer: "",
+    feedback: "",
+    skippedTasks: [],
+    partialAnswer: "",
+    confidence: { score: 0.9, reasoning: "ok" },
+  };
 
   it("ReflectionOutputSchema validates a done decision", () => {
     const result = ReflectionOutputSchema.safeParse({
+      ...baseReflection,
       decision: "done",
       answer: "42",
       reasoning: "computed",
-      confidence: { score: 0.99, reasoning: "high" },
     });
     expect(result.success).toBe(true);
   });
 
   it("ReflectionOutputSchema validates a replan decision", () => {
     const result = ReflectionOutputSchema.safeParse({
+      ...baseReflection,
       decision: "replan",
       reasoning: "missing info",
       feedback: "try harder",
       skippedTasks: ["t2"],
-      confidence: { score: 0.4, reasoning: "low" },
     });
     expect(result.success).toBe(true);
   });
 
   it("ReflectionOutputSchema validates an escalate decision", () => {
     const result = ReflectionOutputSchema.safeParse({
+      ...baseReflection,
       decision: "escalate",
       reasoning: "impossible",
-      confidence: { score: 0.1, reasoning: "very low" },
+      partialAnswer: "partial",
     });
     expect(result.success).toBe(true);
   });
 
   it("ReflectionOutputSchema rejects unknown decision", () => {
     const result = ReflectionOutputSchema.safeParse({
+      ...baseReflection,
       decision: "give_up",
       reasoning: "nah",
     });

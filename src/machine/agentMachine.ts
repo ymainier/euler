@@ -158,10 +158,7 @@ export const agentMachine = setup({
   }),
   output: ({ context }) => {
     if (context.outcome === "done") {
-      const out = context.reflectionOutput as Extract<
-        ReflectionOutput,
-        { decision: "done" }
-      >;
+      const out = context.reflectionOutput as ReflectionOutput;
       return { decision: "done", answer: out.answer };
     }
     if (context.outcome === "escalated") {

@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { MockLanguageModelV3 } from "ai/test";
 import { reflect } from "./reflector.ts";
 
+const base = {
+  answer: "",
+  feedback: "",
+  skippedTasks: [],
+  partialAnswer: "",
+};
+
 const makeModel = (response: object) =>
   new MockLanguageModelV3({
     doGenerate: async () => ({
@@ -23,6 +30,7 @@ const makeModel = (response: object) =>
 describe("reflect", () => {
   it("parses a 'done' decision correctly", async () => {
     const model = makeModel({
+      ...base,
       decision: "done",
       answer: "42",
       reasoning: "because",
@@ -38,6 +46,7 @@ describe("reflect", () => {
     });
 
     expect(result.output).toEqual({
+      ...base,
       decision: "done",
       answer: "42",
       reasoning: "because",
@@ -47,6 +56,7 @@ describe("reflect", () => {
 
   it("parses a 'replan' decision correctly", async () => {
     const model = makeModel({
+      ...base,
       decision: "replan",
       reasoning: "t1 failed",
       feedback: "retry with different approach",
@@ -63,6 +73,7 @@ describe("reflect", () => {
     });
 
     expect(result.output).toEqual({
+      ...base,
       decision: "replan",
       reasoning: "t1 failed",
       feedback: "retry with different approach",
@@ -73,6 +84,7 @@ describe("reflect", () => {
 
   it("parses an 'escalate' decision correctly", async () => {
     const model = makeModel({
+      ...base,
       decision: "escalate",
       reasoning: "beyond scope",
       partialAnswer: "I found some clues",
@@ -88,6 +100,7 @@ describe("reflect", () => {
     });
 
     expect(result.output).toEqual({
+      ...base,
       decision: "escalate",
       reasoning: "beyond scope",
       partialAnswer: "I found some clues",
@@ -97,6 +110,7 @@ describe("reflect", () => {
 
   it("extracts token usage from the SDK response", async () => {
     const model = makeModel({
+      ...base,
       decision: "done",
       answer: "42",
       reasoning: "because",
@@ -129,6 +143,7 @@ describe("reflect", () => {
                   {
                     type: "text" as const,
                     text: JSON.stringify({
+                      ...base,
                       decision: "done",
                       answer: "42",
                       reasoning: "because",
