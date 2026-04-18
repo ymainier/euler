@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { runAgent, resumeAgent, CheckpointStore } from "./index.ts";
 import {
-  runAgent,
-  resumeAgent,
-  CheckpointStore,
-} from "./index.ts";
-import { TaskPlanSchema, ReflectionOutputSchema, ConfidenceSchema } from "./types.ts";
+  TaskPlanSchema,
+  ReflectionOutputSchema,
+  ConfidenceSchema,
+} from "./types.ts";
 
 describe("public exports", () => {
   it("exports runAgent as a function", () => {
@@ -22,19 +22,27 @@ describe("public exports", () => {
 
 describe("Zod schemas", () => {
   it("ConfidenceSchema validates a valid confidence object", () => {
-    const result = ConfidenceSchema.safeParse({ score: 0.8, reasoning: "seems good" });
+    const result = ConfidenceSchema.safeParse({
+      score: 0.8,
+      reasoning: "seems good",
+    });
     expect(result.success).toBe(true);
   });
 
   it("ConfidenceSchema rejects score out of range", () => {
-    const result = ConfidenceSchema.safeParse({ score: 1.5, reasoning: "too high" });
+    const result = ConfidenceSchema.safeParse({
+      score: 1.5,
+      reasoning: "too high",
+    });
     expect(result.success).toBe(false);
   });
 
   it("TaskPlanSchema validates a minimal valid plan", () => {
     const result = TaskPlanSchema.safeParse({
       reasoning: "step by step",
-      tasks: [{ taskId: "t1", description: "do thing", tools: [], dependsOn: [] }],
+      tasks: [
+        { taskId: "t1", description: "do thing", tools: [], dependsOn: [] },
+      ],
       canParallelize: false,
     });
     expect(result.success).toBe(true);
@@ -102,4 +110,3 @@ describe("Zod schemas", () => {
     expect(result.success).toBe(false);
   });
 });
-

@@ -26,7 +26,7 @@ export const TaskPlanSchema = z.object({
       description: z.string(),
       tools: z.array(z.string()),
       dependsOn: z.array(z.string()).default([]),
-    })
+    }),
   ),
   canParallelize: z.boolean(),
   maxConcurrency: z.number().int().min(1).max(10).default(4),
@@ -65,7 +65,12 @@ export type TaskOutput = {
 
 export type TaskStatus =
   | { status: "running"; actorRef: AnyActorRef; startedAt: number }
-  | { status: "done"; output: TaskOutput; durationMs: number; tokenUsage: TokenUsage }
+  | {
+      status: "done";
+      output: TaskOutput;
+      durationMs: number;
+      tokenUsage: TokenUsage;
+    }
   | { status: "failed"; error: string; retryCount: number; durationMs: number }
   | { status: "skipped"; reason: string };
 
@@ -87,13 +92,38 @@ export type AgentContext = {
 export type AgentEvent =
   | { type: "planning"; replanCount: number }
   | { type: "task_spawned"; taskId: string; description: string }
-  | { type: "task_done"; taskId: string; output: TaskOutput; tokenUsage: TokenUsage; durationMs: number }
-  | { type: "task_failed"; taskId: string; error: string; retriesLeft: number; durationMs: number }
+  | {
+      type: "task_done";
+      taskId: string;
+      output: TaskOutput;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
+  | {
+      type: "task_failed";
+      taskId: string;
+      error: string;
+      retriesLeft: number;
+      durationMs: number;
+    }
   | { type: "task_skipped"; taskId: string; reason: string }
   | { type: "reflecting"; completedTasks: number; skippedTasks: number }
   | { type: "checkpoint"; runId: string; at: string }
-  | { type: "done"; answer: string; confidence: ConfidenceScore; tokenUsage: TokenUsage; durationMs: number }
-  | { type: "escalated"; reasoning: string; partialAnswer?: string; confidence: ConfidenceScore; tokenUsage: TokenUsage; durationMs: number }
+  | {
+      type: "done";
+      answer: string;
+      confidence: ConfidenceScore;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
+  | {
+      type: "escalated";
+      reasoning: string;
+      partialAnswer?: string;
+      confidence: ConfidenceScore;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
   | { type: "error"; message: string };
 
 export type RoleConfig = {

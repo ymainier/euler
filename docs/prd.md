@@ -105,6 +105,7 @@ The public surface is tiny. The depth is in the scheduler, the LLM wrappers, and
 - `zod` — schema validation for planner and reflector outputs.
 
 Node built-ins:
+
 - `node:sqlite` — synchronous SQLite driver built into Node.js (stable since v22.5 with `--experimental-sqlite` flag, unflagged in v24+). No native build step, no extra dependency. Matches XState's synchronous transition semantics. Requires Node 22+ (the repo's `.nvmrc` should be verified — see acceptance criteria).
 
 ### Module layout under `src/`
@@ -190,7 +191,7 @@ export const TaskPlanSchema = z.object({
       description: z.string(),
       tools: z.array(z.string()),
       dependsOn: z.array(z.string()).default([]),
-    })
+    }),
   ),
   canParallelize: z.boolean(),
   maxConcurrency: z.number().int().min(1).max(10).default(4),
@@ -229,7 +230,12 @@ export type TaskOutput = {
 
 export type TaskStatus =
   | { status: "running"; actorRef: AnyActorRef; startedAt: number }
-  | { status: "done"; output: TaskOutput; durationMs: number; tokenUsage: TokenUsage }
+  | {
+      status: "done";
+      output: TaskOutput;
+      durationMs: number;
+      tokenUsage: TokenUsage;
+    }
   | { status: "failed"; error: string; retryCount: number; durationMs: number }
   | { status: "skipped"; reason: string };
 
@@ -251,13 +257,38 @@ export type AgentContext = {
 export type AgentEvent =
   | { type: "planning"; replanCount: number }
   | { type: "task_spawned"; taskId: string; description: string }
-  | { type: "task_done"; taskId: string; output: TaskOutput; tokenUsage: TokenUsage; durationMs: number }
-  | { type: "task_failed"; taskId: string; error: string; retriesLeft: number; durationMs: number }
+  | {
+      type: "task_done";
+      taskId: string;
+      output: TaskOutput;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
+  | {
+      type: "task_failed";
+      taskId: string;
+      error: string;
+      retriesLeft: number;
+      durationMs: number;
+    }
   | { type: "task_skipped"; taskId: string; reason: string }
   | { type: "reflecting"; completedTasks: number; skippedTasks: number }
   | { type: "checkpoint"; runId: string; at: string }
-  | { type: "done"; answer: string; confidence: ConfidenceScore; tokenUsage: TokenUsage; durationMs: number }
-  | { type: "escalated"; reasoning: string; partialAnswer?: string; confidence: ConfidenceScore; tokenUsage: TokenUsage; durationMs: number }
+  | {
+      type: "done";
+      answer: string;
+      confidence: ConfidenceScore;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
+  | {
+      type: "escalated";
+      reasoning: string;
+      partialAnswer?: string;
+      confidence: ConfidenceScore;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
   | { type: "error"; message: string };
 
 export type RoleConfig = {
@@ -295,13 +326,14 @@ export type ReadyTask = { task: PlannedTask };
 export function getReadyTasks(
   tasks: Record<string, TaskStatus>,
   plan: TaskPlan,
-  maxConcurrency: number
+  maxConcurrency: number,
 ): PlannedTask[];
 ```
 
 Cycle detection uses DFS with white/grey/black marking. Returns a human-readable cycle description (e.g. `"cycle detected between \"A\" and \"C\""`) suitable for feeding back into the planner prompt.
 
 Scheduler is a pure function of `(tasksStatus, plan, maxConcurrency)` returning the list of tasks to spawn right now. It must:
+
 - skip tasks already present in `tasksStatus` (spawned or complete),
 - include only tasks whose every `dependsOn` entry is `done` in `tasksStatus`,
 - exclude tasks whose any `dependsOn` entry is `failed` or `skipped` (those will be marked `skipped` separately),
@@ -331,6 +363,7 @@ export class CheckpointStore {
 ```
 
 Implementation notes:
+
 - Uses `DatabaseSync` from `node:sqlite` (synchronous API by design).
 - Single table `checkpoints(run_id TEXT PRIMARY KEY, snapshot_json TEXT, context_json TEXT, saved_at TEXT)`.
 - Before serialising `context.tasks`, transform each `running` entry into a placeholder `{ status: "running", startedAt }` (drop the `actorRef`). On load, running tasks are returned as-is; the resume module re-spawns fresh actors for them.
@@ -369,6 +402,7 @@ export async function reflect(args: {
 ```
 
 Each wrapper:
+
 - Uses `generateObject` for planner/reflector with the Zod schemas, `generateText` with `maxSteps` for executor.
 - Wraps the SDK call in `Promise.race([call, timeoutPromise])`. A timeout rejects with `new Error("Task timed out after Nms")`, which is caught by the caller (task actor) and treated as a failure.
 - Extracts token usage from the SDK response and returns it alongside the output.
@@ -428,17 +462,31 @@ Timeouts are enforced inside `executeTask` via `Promise.race`, not via XState `a
 
 ```typescript
 export type FinalOutput =
-  | { kind: "done"; answer: string; confidence: ConfidenceScore; tokenUsage: TokenUsage; durationMs: number }
-  | { kind: "escalated"; reasoning: string; partialAnswer?: string; confidence: ConfidenceScore; tokenUsage: TokenUsage; durationMs: number }
+  | {
+      kind: "done";
+      answer: string;
+      confidence: ConfidenceScore;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
+  | {
+      kind: "escalated";
+      reasoning: string;
+      partialAnswer?: string;
+      confidence: ConfidenceScore;
+      tokenUsage: TokenUsage;
+      durationMs: number;
+    }
   | { kind: "error"; message: string };
 
 export function runAgent(
   goal: string,
-  config: HarnessConfig
+  config: HarnessConfig,
 ): AsyncGenerator<AgentEvent, FinalOutput, void>;
 ```
 
 Implementation sketch:
+
 1. Generate `runId` (crypto.randomUUID).
 2. Create XState actor for the machine with initial context.
 3. Subscribe to `actor.subscribe((snapshot) => ...)`: enqueue derived `AgentEvent`s into an internal queue; if the entered state has `meta.checkpoint === true`, also persist snapshot and push a `checkpoint` event.
@@ -450,7 +498,7 @@ Implementation sketch:
 ```typescript
 export function resumeAgent(
   runId: string,
-  config: HarnessConfig
+  config: HarnessConfig,
 ): AsyncGenerator<AgentEvent, FinalOutput, void>;
 ```
 
@@ -466,9 +514,16 @@ export { runAgent } from "./harness/runAgent.ts";
 export { resumeAgent } from "./resume/resume.ts";
 export { CheckpointStore } from "./checkpoint/store.ts";
 export type {
-  HarnessConfig, RoleConfig, AgentEvent, AgentContext,
-  TaskPlan, ReflectionOutput, TaskOutput, TaskStatus,
-  TokenUsage, ConfidenceScore,
+  HarnessConfig,
+  RoleConfig,
+  AgentEvent,
+  AgentContext,
+  TaskPlan,
+  ReflectionOutput,
+  TaskOutput,
+  TaskStatus,
+  TokenUsage,
+  ConfidenceScore,
 } from "./types.ts";
 ```
 

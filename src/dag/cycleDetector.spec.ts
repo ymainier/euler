@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { detectCycle } from "./cycleDetector.ts";
 
-function task(taskId: string, dependsOn: string[] = []): { taskId: string; description: string; tools: string[]; dependsOn: string[] } {
+function task(
+  taskId: string,
+  dependsOn: string[] = [],
+): {
+  taskId: string;
+  description: string;
+  tools: string[];
+  dependsOn: string[];
+} {
   return { taskId, description: taskId, tools: [], dependsOn };
 }
 
@@ -16,7 +24,11 @@ describe("detectCycle", () => {
     expect(result).not.toBeNull();
   });
   it("detects 3-node cycle", () => {
-    const result = detectCycle([task("A", ["B"]), task("B", ["C"]), task("C", ["A"])]);
+    const result = detectCycle([
+      task("A", ["B"]),
+      task("B", ["C"]),
+      task("C", ["A"]),
+    ]);
     expect(result).not.toBeNull();
   });
   it("detects cycle in one component of a disconnected DAG", () => {

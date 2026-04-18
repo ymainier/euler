@@ -1,5 +1,10 @@
 import type { ModelMessage } from "ai";
-import type { ReflectionOutput, TaskStatus, TokenUsage, RoleConfig } from "../types.ts";
+import type {
+  ReflectionOutput,
+  TaskStatus,
+  TokenUsage,
+  RoleConfig,
+} from "../types.ts";
 
 // TODO: implement
 export async function reflect(_args: {

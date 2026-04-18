@@ -12,7 +12,11 @@ export type CheckpointRecord = {
 export class CheckpointStore {
   constructor(_dbPath: string) {}
 
-  save(_runId: string, _snapshot: Snapshot<unknown>, _context: AgentContext): void {}
+  save(
+    _runId: string,
+    _snapshot: Snapshot<unknown>,
+    _context: AgentContext,
+  ): void {}
 
   load(_runId: string): CheckpointRecord | null {
     return null;

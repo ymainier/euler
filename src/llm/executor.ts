@@ -1,5 +1,10 @@
 import type { Tool } from "ai";
-import type { PlannedTask, TaskOutput, TokenUsage, RoleConfig } from "../types.ts";
+import type {
+  PlannedTask,
+  TaskOutput,
+  TokenUsage,
+  RoleConfig,
+} from "../types.ts";
 
 // TODO: implement
 export async function executeTask(_args: {
