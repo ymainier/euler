@@ -37,6 +37,7 @@ describe("CheckpointStore", () => {
     expect(store.load("nonexistent")).toBeNull();
     store.close();
   });
+
   it("overwrite on re-save", () => {
     const store = new CheckpointStore(":memory:");
     store.save("run-1", snapshot, makeContext("run-1"));
@@ -46,6 +47,7 @@ describe("CheckpointStore", () => {
     expect(record!.context.taskGoal).toBe("updated goal");
     store.close();
   });
+
   it("listRuns returns all saved run IDs", () => {
     const store = new CheckpointStore(":memory:");
     store.save("run-1", snapshot, makeContext("run-1"));
@@ -55,6 +57,7 @@ describe("CheckpointStore", () => {
     expect(runs).toEqual(expect.arrayContaining(["run-1", "run-2"]));
     store.close();
   });
+
   it("delete removes a run", () => {
     const store = new CheckpointStore(":memory:");
     store.save("run-1", snapshot, makeContext("run-1"));
@@ -63,6 +66,7 @@ describe("CheckpointStore", () => {
     expect(store.listRuns()).toEqual([]);
     store.close();
   });
+
   it("strips actorRef from running tasks at save time", () => {
     const store = new CheckpointStore(":memory:");
     const ctx = {

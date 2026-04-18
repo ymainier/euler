@@ -40,6 +40,7 @@ describe("getReadyTasks", () => {
       expect.arrayContaining(["a", "b"]),
     );
   });
+
   it("returns only tasks whose deps are done", () => {
     const plan = {
       ...basePlan,
@@ -56,6 +57,7 @@ describe("getReadyTasks", () => {
     const result = getReadyTasks(tasks, plan, 10);
     expect(result.map((t) => t.taskId)).toEqual(["b"]);
   });
+
   it("respects the concurrency cap", () => {
     const plan = {
       ...basePlan,
@@ -72,6 +74,7 @@ describe("getReadyTasks", () => {
     const result = getReadyTasks(tasks, plan, 1);
     expect(result).toEqual([]);
   });
+
   it("excludes already-spawned tasks", () => {
     const plan = {
       ...basePlan,
@@ -83,6 +86,7 @@ describe("getReadyTasks", () => {
     const result = getReadyTasks(tasks, plan, 10);
     expect(result).toEqual([]);
   });
+
   it("excludes tasks with failed dependencies", () => {
     const plan = {
       ...basePlan,

@@ -23,6 +23,7 @@ describe("detectCycle", () => {
     const result = detectCycle([task("A", ["B"]), task("B", ["A"])]);
     expect(result).not.toBeNull();
   });
+
   it("detects 3-node cycle", () => {
     const result = detectCycle([
       task("A", ["B"]),
@@ -31,11 +32,13 @@ describe("detectCycle", () => {
     ]);
     expect(result).not.toBeNull();
   });
+
   it("detects cycle in one component of a disconnected DAG", () => {
     // Component 1: A → B (no cycle), Component 2: C → C (self-loop)
     const result = detectCycle([task("A", ["B"]), task("B"), task("C", ["C"])]);
     expect(result).not.toBeNull();
   });
+
   it("returns null for a diamond (no cycle)", () => {
     // A→B, A→C, B→D, C→D
     const result = detectCycle([
@@ -46,6 +49,7 @@ describe("detectCycle", () => {
     ]);
     expect(result).toBeNull();
   });
+
   it("returns null for an empty plan", () => {
     expect(detectCycle([])).toBeNull();
   });

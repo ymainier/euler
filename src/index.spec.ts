@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 import { runAgent, resumeAgent, CheckpointStore } from "./index.ts";
 import {
   TaskPlanSchema,
@@ -55,9 +55,8 @@ describe("Zod schemas", () => {
       canParallelize: true,
     });
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.maxConcurrency).toBe(4);
-    }
+    assert(result.success);
+    expect(result.data.maxConcurrency).toBe(4);
   });
 
   it("TaskPlanSchema applies default dependsOn of []", () => {
@@ -67,9 +66,8 @@ describe("Zod schemas", () => {
       canParallelize: false,
     });
     expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.tasks[0]?.dependsOn).toEqual([]);
-    }
+    assert(result.success);
+    expect(result.data.tasks[0]?.dependsOn).toEqual([]);
   });
 
   it("ReflectionOutputSchema validates a done decision", () => {

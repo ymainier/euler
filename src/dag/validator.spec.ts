@@ -31,6 +31,7 @@ describe("validatePlan", () => {
     const result = validatePlan(plan);
     expect(result).toBeTypeOf("string");
   });
+
   it("returns an error when both cycle and dangling ref exist", () => {
     // "a"→"b" cycle, plus "a" also depends on "ghost" (dangling)
     const plan = {
@@ -44,6 +45,7 @@ describe("validatePlan", () => {
     expect(result).toBeTypeOf("string");
     expect(result).toContain("ghost");
   });
+
   it("returns null for a valid plan", () => {
     const plan = {
       ...basePlan,
