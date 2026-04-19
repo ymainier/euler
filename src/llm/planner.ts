@@ -32,6 +32,7 @@ export async function plan(args: {
     output: Output.object({ schema: TaskPlanSchema }),
     system: systemPrompt,
     messages: [...messages, { role: "user", content: goal }],
+    experimental_telemetry: { isEnabled: true, functionId: "planner" },
   });
 
   const result = await Promise.race([call, timeoutPromise]);

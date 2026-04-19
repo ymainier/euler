@@ -9,6 +9,7 @@
 import type { LanguageModel } from "ai";
 import { runAgent } from "../src/index.ts";
 import type { HarnessConfig } from "../src/index.ts";
+import { setupTelemetry } from "../src/telemetry.ts";
 
 // ---------------------------------------------------------------------------
 // 1. Swap in a real model before running: use completions provdided by TS
@@ -45,6 +46,7 @@ const config: HarnessConfig = {
 const goal = process.argv[2] ?? "What is the capital of France?";
 console.log(`Goal: ${goal}\n`);
 
+setupTelemetry();
 const gen = runAgent(goal, config);
 
 while (true) {
