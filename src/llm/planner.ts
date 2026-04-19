@@ -7,14 +7,17 @@ import {
   type RoleConfig,
 } from "../types.ts";
 
+export type ToolDescriptor = { name: string; description: string };
+
 export async function plan(args: {
   goal: string;
   messages: ModelMessage[];
   feedback: string | null;
   config: RoleConfig;
+  availableTools: ToolDescriptor[];
   timeoutMs: number;
 }): Promise<{ plan: TaskPlan; usage: TokenUsage }> {
-  const { goal, messages, feedback, config, timeoutMs } = args;
+  const { goal, messages, feedback, config, availableTools, timeoutMs } = args;
 
   const timeoutPromise = new Promise<never>((_, reject) =>
     setTimeout(
@@ -23,9 +26,15 @@ export async function plan(args: {
     ),
   );
 
+  const toolsSection =
+    availableTools.length > 0
+      ? `\n\nAvailable tools (use only these exact names in task tool lists):\n${availableTools.map((t) => `- ${t.name}: ${t.description}`).join("\n")}`
+      : "\n\nNo tools are available. Set tools to [] for all tasks.";
+
+  const basePrompt = `${config.systemPrompt}${toolsSection}`;
   const systemPrompt = feedback
-    ? `${config.systemPrompt}\n\nPrevious attempt feedback:\n${feedback}`
-    : config.systemPrompt;
+    ? `${basePrompt}\n\nPrevious attempt feedback:\n${feedback}`
+    : basePrompt;
 
   const call = generateText({
     model: config.model,

@@ -34,16 +34,26 @@ export async function* resumeAgent(
       messages: [],
       feedback,
       config: config.roles.planner,
+      availableTools: Object.entries(config.tools).map(([name, tool]) => ({
+        name,
+        description: tool.description ?? "",
+      })),
       timeoutMs: config.taskTimeoutMs,
     });
-  const freshExecuteTaskFn = (task: PlannedTask) =>
-    executeTask({
+  const freshExecuteTaskFn = (task: PlannedTask) => {
+    const knownNames = task.tools.filter((t) => t in config.tools);
+    const tools =
+      knownNames.length > 0
+        ? Object.fromEntries(knownNames.map((t) => [t, config.tools[t]!]))
+        : {};
+    return executeTask({
       task,
-      tools: config.tools,
+      tools,
       config: config.roles.executor,
       maxSteps: config.maxTaskSteps,
       timeoutMs: config.taskTimeoutMs,
     });
+  };
   const freshReflectFn = (
     g: string,
     tasks: Record<string, TaskStatus>,

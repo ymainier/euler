@@ -39,10 +39,36 @@ describe("plan", () => {
       messages: [],
       feedback: null,
       config: { model: makeModel(), systemPrompt: "You are a planner." },
+      availableTools: [],
       timeoutMs: 5000,
     });
 
     expect(result.plan).toEqual(samplePlan);
+  });
+
+  it("includes available tools with descriptions in the system prompt", async () => {
+    const model = makeModel();
+    await plan({
+      goal: "do something",
+      messages: [],
+      feedback: null,
+      config: { model, systemPrompt: "You are a planner." },
+      availableTools: [
+        { name: "search", description: "Find information on the web" },
+        { name: "calculator", description: "Evaluate math expressions" },
+      ],
+      timeoutMs: 5000,
+    });
+
+    const systemMessage = model.doGenerateCalls[0]?.prompt.find(
+      (m) => m.role === "system",
+    );
+    expect(systemMessage?.content).toContain(
+      "- search: Find information on the web",
+    );
+    expect(systemMessage?.content).toContain(
+      "- calculator: Evaluate math expressions",
+    );
   });
 
   it("includes feedback in the prompt when provided", async () => {
@@ -52,6 +78,7 @@ describe("plan", () => {
       messages: [],
       feedback: "task t1 had a dangling reference",
       config: { model, systemPrompt: "You are a planner." },
+      availableTools: [],
       timeoutMs: 5000,
     });
 
@@ -69,6 +96,7 @@ describe("plan", () => {
       messages: [],
       feedback: null,
       config: { model: makeModel(), systemPrompt: "You are a planner." },
+      availableTools: [],
       timeoutMs: 5000,
     });
 
@@ -112,6 +140,7 @@ describe("plan", () => {
         messages: [],
         feedback: null,
         config: { model: slowModel, systemPrompt: "You are a planner." },
+        availableTools: [],
         timeoutMs: 10,
       }),
     ).rejects.toThrow("Task timed out after 10ms");

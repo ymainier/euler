@@ -60,6 +60,7 @@ function makeInput() {
         messages: [],
         feedback,
         config: roleConfig,
+        availableTools: [],
         timeoutMs: 1000,
       }),
     executeTaskFn: (task: PlannedTask) =>
