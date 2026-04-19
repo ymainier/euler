@@ -29,6 +29,11 @@ export async function executeTask(args: {
     prompt: task.description,
     tools,
     stopWhen: stepCountIs(maxSteps),
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: "executor",
+      metadata: { taskId: task.taskId },
+    },
   });
 
   const result = await Promise.race([call, timeoutPromise]);

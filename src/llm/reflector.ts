@@ -29,6 +29,7 @@ export async function reflect(args: {
     output: Output.object({ schema: ReflectionOutputSchema }),
     system: config.systemPrompt,
     messages: [...messages, { role: "user", content: goal }],
+    experimental_telemetry: { isEnabled: true, functionId: "reflector" },
   });
 
   const result = await Promise.race([call, timeoutPromise]);
